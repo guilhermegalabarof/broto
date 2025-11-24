@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePage extends StatefulWidget {
   final String title;
@@ -39,9 +40,9 @@ class _HomePageState extends State<HomePage> {
 
             ElevatedButton(
               onPressed: () {
-                print('iha');
+                context.push('/dishes/new');
               },
-              child: Text('Iha'),
+              child: Text('Create new dish'),
             ),
           ],
         ),
