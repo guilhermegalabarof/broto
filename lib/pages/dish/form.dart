@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../providers/dish_provider.dart';
+import '../../models/dish.dart';
 
-class DishFormPage extends StatefulWidget {
+class DishFormPage extends ConsumerStatefulWidget {
   const DishFormPage({super.key});
 
   @override
-  State<DishFormPage> createState() => _DishFormPage();
+  ConsumerState<DishFormPage> createState() => _DishFormPage();
 }
 
-class _DishFormPage extends State<DishFormPage> {
+class _DishFormPage extends ConsumerState<DishFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
 
@@ -20,7 +23,14 @@ class _DishFormPage extends State<DishFormPage> {
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
+      final newDish = Dish(name: _nameController.text);
       print('name: ${_nameController.text}');
+      ref.read(dishProvider.notifier).addDish(newDish);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Dish added!')));
+
+      context.pop();
     }
   }
 
