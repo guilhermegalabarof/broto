@@ -11,4 +11,9 @@ class Dish {
 
   final String name;
   final String id;
+
+  @override
+  String toString() {
+    return 'Dish(id: $id, name: $name)';
+  }
 }

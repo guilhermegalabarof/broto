@@ -1,57 +1,62 @@
+import 'package:broto/providers/dish_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   final String title;
   const HomePage({super.key, required this.title});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
+class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: .center,
-          children: [
-            const Text('Start by adding a meal'),
+    final dishes = ref.watch(dishProvider);
 
-            ElevatedButton(
-              onPressed: () {
-                context.push('/dishes/new');
-              },
-              child: Text('Create new dish'),
+    debugPrint('dishes: $dishes');
+
+    return Scaffold(
+      body: dishes.isNotEmpty
+          ? Column(
+              children: [
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1,
+                    ),
+                    itemCount: dishes.length,
+                    itemBuilder: (context, index) {
+                      final dish = dishes[index];
+                      return Card(elevation: 4, child: Text(dish.name));
+                    },
+                  ),
+                ),
+                _buildCreateButton(context),
+              ],
+            )
+          : Center(
+              child: Column(
+                children: [
+                  Text('Start by adding a meal'),
+                  _buildCreateButton(context),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.remove),
-      ),
+    );
+  }
+
+  ElevatedButton _buildCreateButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        context.push('/dishes/new');
+      },
+      child: Text('Create new dish'),
     );
   }
 }
