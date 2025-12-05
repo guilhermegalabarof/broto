@@ -1,62 +1,52 @@
-import 'package:broto/providers/dish_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../providers/dish_provider.dart';
+import 'dish/list.dart';
 
-class HomePage extends ConsumerStatefulWidget {
+class HomePage extends ConsumerWidget {
   final String title;
   const HomePage({super.key, required this.title});
 
   @override
-  ConsumerState<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends ConsumerState<HomePage> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final dishes = ref.watch(dishProvider);
 
-    debugPrint('dishes: $dishes');
-
     return Scaffold(
+      appBar: AppBar(title: Text(title)),
       body: dishes.isNotEmpty
-          ? Column(
-              children: [
-                Expanded(
-                  child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 1,
-                    ),
-                    itemCount: dishes.length,
-                    itemBuilder: (context, index) {
-                      final dish = dishes[index];
-                      return Card(elevation: 4, child: Text(dish.name));
-                    },
-                  ),
-                ),
-                _buildCreateButton(context),
-              ],
-            )
-          : Center(
-              child: Column(
-                children: [
-                  Text('Start by adding a meal'),
-                  _buildCreateButton(context),
-                ],
-              ),
-            ),
+          ? const DishList() // Use the extracted list component
+          : _buildEmptyState(context),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/dishes/new'),
+        icon: const Icon(Icons.add),
+        label: const Text('New Dish'),
+      ),
     );
   }
 
-  ElevatedButton _buildCreateButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        context.push('/dishes/new');
-      },
-      child: Text('Create new dish'),
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.restaurant_menu, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'No dishes yet',
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Start by adding your first dish',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+          ),
+        ],
+      ),
     );
   }
 }

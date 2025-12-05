@@ -12,5 +12,12 @@ final GoRouter goRouter = GoRouter(
       path: '/dishes/new',
       builder: (context, state) => const DishFormPage(),
     ),
+    GoRoute(
+      path: '/dishes/edit/:id',
+      builder: (context, state) {
+        final dishId = state.pathParameters['id']!;
+        return DishFormPage(dishId: dishId);
+      },
+    ),
   ],
 );

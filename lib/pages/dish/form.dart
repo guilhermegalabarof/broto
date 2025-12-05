@@ -5,7 +5,9 @@ import '../../providers/dish_provider.dart';
 import '../../models/dish.dart';
 
 class DishFormPage extends ConsumerStatefulWidget {
-  const DishFormPage({super.key});
+  final String? dishId;
+
+  const DishFormPage({super.key, this.dishId});
 
   @override
   ConsumerState<DishFormPage> createState() => _DishFormPage();
@@ -15,20 +17,54 @@ class _DishFormPage extends ConsumerState<DishFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
 
+  Dish? _dishToEdit;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.dishId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final dishes = ref.read(dishProvider);
+        _dishToEdit = dishes.firstWhere(
+          (dish) => dish.id == widget.dishId,
+          orElse: () => throw Exception('Dish not found'),
+        );
+        _nameController.text = _dishToEdit!.name;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
-    super.dispose(); //this is a cleanup
+    super.dispose();
   }
+
+  bool get _isEditMode => widget.dishId != null;
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      final newDish = Dish(name: _nameController.text);
-      print('name: ${_nameController.text}');
-      ref.read(dishProvider.notifier).addDish(newDish);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Dish added!')));
+      final dishName = _nameController.text;
+
+      if (_isEditMode) {
+        final updatedDish = Dish.fromDatabase(
+          id: widget.dishId!,
+          name: dishName,
+        );
+        ref.read(dishProvider.notifier).updateDish(widget.dishId!, updatedDish);
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Dish updated!')));
+      } else {
+        // Create new dish
+        final newDish = Dish(name: dishName);
+        ref.read(dishProvider.notifier).addDish(newDish);
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Dish added!')));
+      }
 
       context.pop();
     }
@@ -37,13 +73,7 @@ class _DishFormPage extends ConsumerState<DishFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Center(child: const Text('New Dish')),
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back),
-        ),
-      ),
+      appBar: AppBar(title: Text(_isEditMode ? 'Edit Dish' : 'New Dish')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -64,7 +94,10 @@ class _DishFormPage extends ConsumerState<DishFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton(onPressed: _submitForm, child: Text('Salvar')),
+                ElevatedButton(
+                  onPressed: _submitForm,
+                  child: Text(_isEditMode ? 'Update' : 'Create'),
+                ),
               ],
             ),
           ),
